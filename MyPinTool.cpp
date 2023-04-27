@@ -12,10 +12,11 @@ using std::hex;
 using std::ofstream;
 using std::setw;
 using std::string;
-using namespace std;
 ofstream outFile;
 
-
+/**
+* Helper method to calculate average time
+*/
 float average(std::vector<int> const& v) {
     if (v.empty()) {
         return 0;
@@ -25,6 +26,10 @@ float average(std::vector<int> const& v) {
 }
 map<string, vector<int>> StartTimeMap;
 map<string, vector<int>> EndTimeMap;
+
+/** Structure to store data for each routine
+* in the program
+*/
 typedef struct RtnCount
 {
     string _name;
@@ -35,20 +40,33 @@ typedef struct RtnCount
 } RTN_COUNT;
 RTN_COUNT* RtnList = 0;
 
+/** Analysis function called before
+* Routine Call in the binary.
+*/
 VOID CalculateStartTime(string* _name) {
 
     time_t begin;
     StartTimeMap[*_name].push_back(time(&begin));
 }
 
+/** Analysis function called after
+* Routine Call in the binary.
+*/
 VOID CalculateEndTime(string* _name) {
 
     time_t end;
     EndTimeMap[*_name].push_back(time(&end));
 }
 
+/** Analysis function called to count
+instructions in a binary.
+*/
 VOID docount(UINT64* counter) { (*counter)++; }
 
+/** Instrument function to determine 
+* the instrument points in the Binary
+* For the current program it RTN routine.
+*/
 VOID Routine(RTN rtn, VOID* v)
 {
     RTN_COUNT* rc = new RTN_COUNT;
@@ -72,6 +90,9 @@ VOID Routine(RTN rtn, VOID* v)
     RTN_Close(rtn);
 }
 
+/** Fini Function will be executed at program end
+* Here we are writing all info into a outfile.
+*/
 VOID Fini(INT32 code, VOID* v)
 {
     cout <<"Procedure"<< setw(40) 
@@ -100,6 +121,10 @@ INT32 Usage()
     cerr << endl << KNOB_BASE::StringKnobSummary() << endl;
     return -1;
 }
+
+/** Main Function will be executed at program start
+* It registers the Init Symbols and Instrument Function.
+*/
 int main(int argc, char* argv[])
 {
     // Initialize symbol table code, needed for rtn instrumentation
